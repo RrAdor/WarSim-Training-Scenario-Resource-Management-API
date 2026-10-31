@@ -82,7 +82,8 @@ public class ApplicationDbContext : DbContext
                 .IsRequired();
 
             entity.Property(e => e.AvailableQuantity)
-                .IsRequired();
+                .IsRequired()
+                .IsConcurrencyToken();
 
             entity.Property(e => e.IsActive)
                 .IsRequired()
