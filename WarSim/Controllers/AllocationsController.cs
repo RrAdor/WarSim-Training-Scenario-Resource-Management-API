@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WarSim.DTOs;
 using WarSim.DTOs.Allocations;
@@ -9,6 +10,7 @@ using WarSim.Services;
 namespace WarSim.Controllers;
 
 [ApiController]
+[Produces("application/json")]
 public class AllocationsController : ControllerBase
 {
     private readonly IAllocationService _allocationService;
@@ -19,6 +21,12 @@ public class AllocationsController : ControllerBase
     }
 
     [HttpPost("api/scenarios/{scenarioId:int}/allocations")]
+    [EndpointSummary("Allocate generic equipment to a team in a scenario")]
+    [EndpointDescription("Validates that scenario is Draft, team and equipment are active, quantity is positive, and sufficient available stock exists. Decrements available inventory and commits atomically.")]
+    [ProducesResponseType(typeof(AllocationResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AllocationResponse>> Create(
         int scenarioId,
         [FromBody] CreateAllocationRequest request,
@@ -57,6 +65,10 @@ public class AllocationsController : ControllerBase
     }
 
     [HttpGet("api/scenarios/{scenarioId:int}/allocations")]
+    [EndpointSummary("List allocations for a scenario")]
+    [EndpointDescription("Retrieves all equipment allocations for the specified scenario with team and equipment details.")]
+    [ProducesResponseType(typeof(IReadOnlyList<AllocationResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IReadOnlyList<AllocationResponse>>> GetByScenario(
         int scenarioId,
         CancellationToken cancellationToken)
@@ -76,6 +88,12 @@ public class AllocationsController : ControllerBase
     }
 
     [HttpDelete("api/allocations/{allocationId:int}")]
+    [EndpointSummary("Delete an allocation and restore inventory")]
+    [EndpointDescription("Deletes an allocation record and restores its allocated quantity back to equipment availability atomically.")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Delete(
         int allocationId,
         CancellationToken cancellationToken)
@@ -109,4 +127,3 @@ public class AllocationsController : ControllerBase
         return NoContent();
     }
 }
-

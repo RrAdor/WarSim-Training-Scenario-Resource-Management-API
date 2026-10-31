@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WarSim.DTOs;
 using WarSim.Services;
@@ -9,6 +10,7 @@ namespace WarSim.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class ScenariosController : ControllerBase
 {
     private readonly IScenarioService _scenarioService;
@@ -19,6 +21,10 @@ public class ScenariosController : ControllerBase
     }
 
     [HttpPost]
+    [EndpointSummary("Create a new training scenario")]
+    [EndpointDescription("Creates a new fictional scenario with status 'Draft'. Name must be between 1 and 120 characters.")]
+    [ProducesResponseType(typeof(ScenarioResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ScenarioResponse>> Create(
         [FromBody] CreateScenarioRequest request,
         CancellationToken cancellationToken)
@@ -38,6 +44,9 @@ public class ScenariosController : ControllerBase
     }
 
     [HttpGet]
+    [EndpointSummary("List all scenarios")]
+    [EndpointDescription("Retrieves all training scenarios ordered by ID.")]
+    [ProducesResponseType(typeof(IReadOnlyList<ScenarioResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<ScenarioResponse>>> GetAll(CancellationToken cancellationToken)
     {
         var scenarios = await _scenarioService.GetAllAsync(cancellationToken);
@@ -45,6 +54,10 @@ public class ScenariosController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [EndpointSummary("Get scenario by ID")]
+    [EndpointDescription("Retrieves the details of a specific scenario by its ID.")]
+    [ProducesResponseType(typeof(ScenarioResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ScenarioResponse>> GetById(int id, CancellationToken cancellationToken)
     {
         var scenario = await _scenarioService.GetByIdAsync(id, cancellationToken);
@@ -62,6 +75,11 @@ public class ScenariosController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [EndpointSummary("Update a draft scenario")]
+    [EndpointDescription("Updates the name and description of an existing draft scenario. Only scenarios in 'Draft' status can be edited.")]
+    [ProducesResponseType(typeof(ScenarioResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ScenarioResponse>> Update(
         int id,
         [FromBody] UpdateScenarioRequest request,
@@ -91,6 +109,11 @@ public class ScenariosController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [EndpointSummary("Delete a scenario")]
+    [EndpointDescription("Deletes a scenario. Rejects with 400 Bad Request if dependent allocations or simulation events exist.")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
     {
         var result = await _scenarioService.DeleteAsync(id, cancellationToken);
@@ -116,4 +139,3 @@ public class ScenariosController : ControllerBase
         return NoContent();
     }
 }
-

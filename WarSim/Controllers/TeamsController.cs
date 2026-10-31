@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using WarSim.DTOs;
 using WarSim.Services;
@@ -9,6 +10,7 @@ namespace WarSim.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Produces("application/json")]
 public class TeamsController : ControllerBase
 {
     private readonly ITeamService _teamService;
@@ -19,6 +21,10 @@ public class TeamsController : ControllerBase
     }
 
     [HttpPost]
+    [EndpointSummary("Register a new training team")]
+    [EndpointDescription("Registers a new fictional team with specified name and non-negative member count. IsActive defaults to true.")]
+    [ProducesResponseType(typeof(TeamResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<TeamResponse>> Create(
         [FromBody] CreateTeamRequest request,
         CancellationToken cancellationToken)
@@ -38,6 +44,9 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet]
+    [EndpointSummary("List all teams")]
+    [EndpointDescription("Retrieves all registered training teams ordered by ID.")]
+    [ProducesResponseType(typeof(IReadOnlyList<TeamResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IReadOnlyList<TeamResponse>>> GetAll(CancellationToken cancellationToken)
     {
         var teams = await _teamService.GetAllAsync(cancellationToken);
@@ -45,6 +54,10 @@ public class TeamsController : ControllerBase
     }
 
     [HttpGet("{id:int}")]
+    [EndpointSummary("Get team by ID")]
+    [EndpointDescription("Retrieves the details of a specific team by its ID.")]
+    [ProducesResponseType(typeof(TeamResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<TeamResponse>> GetById(int id, CancellationToken cancellationToken)
     {
         var team = await _teamService.GetByIdAsync(id, cancellationToken);
@@ -61,4 +74,3 @@ public class TeamsController : ControllerBase
         return Ok(team);
     }
 }
-
