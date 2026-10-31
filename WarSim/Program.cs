@@ -22,6 +22,7 @@ builder.Services.AddScoped<IScenarioService, ScenarioService>();
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<IEquipmentService, EquipmentService>();
 builder.Services.AddScoped<IAllocationService, AllocationService>();
+builder.Services.AddScoped<ISimulationService, SimulationService>();
 
 // Configure OpenAPI for API documentation
 builder.Services.AddOpenApi();
